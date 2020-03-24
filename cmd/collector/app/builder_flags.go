@@ -35,6 +35,7 @@ const (
 	collectorZipkinHTTPort        = "collector.zipkin.http-port"
 	collectorZipkinAllowedOrigins = "collector.zipkin.allowed-origins"
 	collectorZipkinAllowedHeaders = "collector.zipkin.allowed-headers"
+	spanProcessorType             = "collector.span-processor-type"
 )
 
 var tlsFlagsConfig = tlscfg.ServerFlagsConfig{
@@ -65,6 +66,8 @@ type CollectorOptions struct {
 	CollectorZipkinAllowedOrigins string
 	// CollectorZipkinAllowedHeaders is a list of headers that the Zipkin collector service allowes the client to use with cross-domain requests
 	CollectorZipkinAllowedHeaders string
+	// SpanProcessorType is the type of span processor between normal or tail-based sampling
+	SpanProcessorType string
 }
 
 // AddFlags adds flags for CollectorOptions
@@ -78,6 +81,7 @@ func AddFlags(flags *flag.FlagSet) {
 	flags.Int(collectorZipkinHTTPort, 0, "The HTTP port for the Zipkin collector service e.g. 9411")
 	flags.String(collectorZipkinAllowedOrigins, "*", "Comma separated list of allowed origins for the Zipkin collector service, default accepts all")
 	flags.String(collectorZipkinAllowedHeaders, "content-type", "Comma separated list of allowed headers for the Zipkin collector service, default content-type")
+	flags.String(spanProcessorType, "normal", " type of span processor between normal or tail-based sampling")
 	tlsFlagsConfig.AddFlags(flags)
 }
 
@@ -92,6 +96,7 @@ func (cOpts *CollectorOptions) InitFromViper(v *viper.Viper) *CollectorOptions {
 	cOpts.CollectorZipkinHTTPPort = v.GetInt(collectorZipkinHTTPort)
 	cOpts.CollectorZipkinAllowedOrigins = v.GetString(collectorZipkinAllowedOrigins)
 	cOpts.CollectorZipkinAllowedHeaders = v.GetString(collectorZipkinAllowedHeaders)
+	cOpts.SpanProcessorType = v.GetString(spanProcessorType)
 	cOpts.TLS = tlsFlagsConfig.InitFromViper(v)
 	return cOpts
 }

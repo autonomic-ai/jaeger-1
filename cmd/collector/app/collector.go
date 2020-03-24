@@ -79,7 +79,12 @@ func (c *Collector) Start(builderOpts *CollectorOptions) error {
 		MetricsFactory: c.metricsFactory,
 	}
 
-	c.spanProcessor = handlerBuilder.BuildSpanProcessor()
+	procType := handlerBuilder.CollectorOpts.SpanProcessorType
+	if procType == "tail" {
+		c.spanProcessor = handlerBuilder.BuildSpanProcessorTailSampling()
+	} else {
+		c.spanProcessor = handlerBuilder.BuildSpanProcessor()
+	}
 	c.spanHandlers = handlerBuilder.BuildHandlers(c.spanProcessor)
 
 	if grpcServer, err := server.StartGRPCServer(&server.GRPCServerParams{

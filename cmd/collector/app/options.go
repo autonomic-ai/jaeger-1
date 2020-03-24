@@ -20,6 +20,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/jaegertracing/jaeger/cmd/collector/app/processor"
+	"github.com/jaegertracing/jaeger/cmd/collector/app/sampling"
 	"github.com/jaegertracing/jaeger/cmd/collector/app/sanitizer"
 	"github.com/jaegertracing/jaeger/model"
 )
@@ -47,6 +48,7 @@ type options struct {
 	reportBusy         bool
 	extraFormatTypes   []processor.SpanFormat
 	collectorTags      map[string]string
+	policyEvaluator    sampling.PolicyEvaluator
 }
 
 // Option is a function that sets some option on StorageBuilder.
@@ -157,6 +159,12 @@ func (options) ExtraFormatTypes(extraFormatTypes []processor.SpanFormat) Option 
 func (options) CollectorTags(extraTags map[string]string) Option {
 	return func(b *options) {
 		b.collectorTags = extraTags
+	}
+}
+
+func (options) PolicyEvaluator(policyEvaluator sampling.PolicyEvaluator) Option {
+	return func(b *options) {
+		b.policyEvaluator = policyEvaluator
 	}
 }
 

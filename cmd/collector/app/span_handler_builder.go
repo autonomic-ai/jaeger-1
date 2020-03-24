@@ -23,6 +23,7 @@ import (
 
 	"github.com/jaegertracing/jaeger/cmd/collector/app/handler"
 	"github.com/jaegertracing/jaeger/cmd/collector/app/processor"
+	"github.com/jaegertracing/jaeger/cmd/collector/app/sampling"
 	zs "github.com/jaegertracing/jaeger/cmd/collector/app/sanitizer/zipkin"
 	"github.com/jaegertracing/jaeger/model"
 	"github.com/jaegertracing/jaeger/storage/spanstore"
@@ -60,6 +61,28 @@ func (b *SpanHandlerBuilder) BuildSpanProcessor() processor.SpanProcessor {
 		Options.CollectorTags(b.CollectorOpts.CollectorTags),
 		Options.DynQueueSizeWarmup(uint(b.CollectorOpts.QueueSize)), // same as queue size for now
 		Options.DynQueueSizeMemory(b.CollectorOpts.DynQueueSizeMemory),
+	)
+
+}
+
+// BuildSpanProcessorTailSampling builds the span processor to be used with the handlers
+func (b *SpanHandlerBuilder) BuildSpanProcessorTailSampling() processor.SpanProcessor {
+	hostname, _ := os.Hostname()
+	svcMetrics := b.metricsFactory()
+	hostMetrics := svcMetrics.Namespace(metrics.NSOptions{Tags: map[string]string{"host": hostname}})
+	defaultPolicyEvaluator := sampling.NewAlwaysSample(b.logger())
+	return NewSpanProcessorTailSampling(
+		b.SpanWriter,
+		Options.ServiceMetrics(svcMetrics),
+		Options.HostMetrics(hostMetrics),
+		Options.Logger(b.logger()),
+		Options.SpanFilter(defaultSpanFilter),
+		Options.NumWorkers(b.CollectorOpts.NumWorkers),
+		Options.QueueSize(b.CollectorOpts.QueueSize),
+		Options.CollectorTags(b.CollectorOpts.CollectorTags),
+		Options.DynQueueSizeWarmup(uint(b.CollectorOpts.QueueSize)), // same as queue size for now
+		Options.DynQueueSizeMemory(b.CollectorOpts.DynQueueSizeMemory),
+		Options.PolicyEvaluator(defaultPolicyEvaluator),
 	)
 
 }
